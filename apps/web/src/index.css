@@ -1,0 +1,33 @@
+@import 'tailwindcss';
+
+/* Dark theme by default (matches the prototype). Use logical utilities
+   (ms-/me-/ps-/pe-/start-/end-) so layouts flip automatically under dir="rtl". */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-background: oklch(0.17 0.02 260);
+  --color-foreground: oklch(0.96 0.01 260);
+  --color-card: oklch(0.21 0.025 260);
+  --color-card-foreground: oklch(0.96 0.01 260);
+  --color-muted: oklch(0.27 0.025 260);
+  --color-muted-foreground: oklch(0.72 0.02 260);
+  --color-border: oklch(0.32 0.025 260);
+  --color-input: oklch(0.32 0.025 260);
+  --color-primary: oklch(0.75 0.14 230);
+  --color-primary-foreground: oklch(0.18 0.03 250);
+  --color-destructive: oklch(0.63 0.21 25);
+  --color-ring: oklch(0.75 0.14 230);
+  --font-sans: 'Inter', 'Noto Sans Arabic', 'Segoe UI', system-ui, sans-serif;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+}

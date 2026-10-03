@@ -1,0 +1,84 @@
+{
+  "app": {
+    "name": "Figure",
+    "tagline": "AI-powered KPI and workforce productivity analysis",
+    "by": "by ASE Automation"
+  },
+  "common": {
+    "loading": "Loading…",
+    "save": "Save",
+    "continue": "Continue",
+    "signOut": "Sign out",
+    "language": "العربية",
+    "or": "or",
+    "error": "Something went wrong. Please try again.",
+    "back": "Back"
+  },
+  "landing": {
+    "headline": "Turn job analysis into measurable performance",
+    "body": "Define your organization, let AI build role-specific KPI frameworks, and score productivity against what each job is actually meant to do.",
+    "getStarted": "Get started",
+    "signIn": "Sign in"
+  },
+  "auth": {
+    "signInTitle": "Sign in to Figure",
+    "signUpTitle": "Create your account",
+    "email": "Email",
+    "password": "Password",
+    "fullName": "Full name",
+    "signIn": "Sign in",
+    "signUp": "Create account",
+    "magicLink": "Email me a sign-in link",
+    "magicLinkSent": "Check your inbox for a sign-in link.",
+    "google": "Continue with Google",
+    "noAccount": "No account yet?",
+    "haveAccount": "Already have an account?",
+    "forgot": "Forgot password?",
+    "resetTitle": "Reset your password",
+    "resetSend": "Send reset link",
+    "resetSent": "If that email is registered, a reset link is on its way.",
+    "newPassword": "New password",
+    "updatePassword": "Update password",
+    "passwordUpdated": "Password updated.",
+    "confirmEmail": "Check your inbox to confirm your email, then sign in.",
+    "passwordHint": "At least 8 characters"
+  },
+  "onboarding": {
+    "title": "Set up your company",
+    "subtitle": "You will be the owner. You can add your team, departments and positions next.",
+    "nameEn": "Company name (English)",
+    "nameAr": "Company name (Arabic)",
+    "personal": "I am an individual, not a company",
+    "personalHint": "Creates a private workspace just for you.",
+    "create": "Create company"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "timesheets": "Timesheets",
+    "documents": "Documents",
+    "org": "Organization",
+    "training": "Training",
+    "audit": "Audit",
+    "reports": "Reports",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "welcome": "Welcome to {{company}}",
+    "role": "Your role",
+    "permissions": "Your permissions",
+    "comingSoon": "KPI dashboards arrive in Phase 3. Next up: organization structure and onboarding."
+  },
+  "roles": {
+    "company_owner": "Owner",
+    "ceo": "CEO",
+    "hr_admin": "HR admin",
+    "hr_staff": "HR staff",
+    "manager": "Manager",
+    "employee": "Employee"
+  },
+  "errors": {
+    "forbidden": "You do not have permission to view this page.",
+    "notFound": "Page not found.",
+    "config": "The app is not configured yet."
+  }
+}
