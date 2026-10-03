@@ -30,6 +30,8 @@ jobs:
           version: latest
       - run: supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_ID }}"
       - run: supabase db push
+      - name: Deploy Edge Functions
+        run: supabase functions deploy send-invite --project-ref "${{ secrets.SUPABASE_PROJECT_ID }}"
 
   web:
     name: Deploy web to Cloudflare Pages

@@ -31,3 +31,25 @@ describe('i18n', () => {
     expect(directionFor('en')).toBe('ltr');
   });
 });
+
+describe('translation keys used in code', () => {
+  it('exist in en.json', async () => {
+    const { readdirSync, readFileSync, statSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const root = join(__dirname, '..');
+    const files: string[] = [];
+    const walk = (dir: string) => {
+      for (const name of readdirSync(dir)) {
+        const path = join(dir, name);
+        if (statSync(path).isDirectory()) walk(path);
+        else if (/\.tsx?$/.test(name) && !name.endsWith('.test.ts')) files.push(path);
+      }
+    };
+    walk(root);
+    const flat = new Set(keys(en));
+    const used = files.flatMap((f) =>
+      [...readFileSync(f, 'utf8').matchAll(/\bt\(\s*'([^']+)'/g)].map((m) => m[1]!),
+    );
+    expect(used.filter((k) => !flat.has(k))).toEqual([]);
+  });
+});

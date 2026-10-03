@@ -24,9 +24,20 @@ create schema auth;
 grant usage on schema auth to anon, authenticated, service_role;
 
 create table auth.users (
-  id    uuid primary key,
-  email text
+  id                 uuid primary key,
+  email              text,
+  email_confirmed_at timestamptz default now(),
+  raw_user_meta_data jsonb default '{}'::jsonb,
+  last_sign_in_at    timestamptz
 );
+
+create function auth.jwt()
+returns jsonb
+language sql
+stable
+as $$
+  select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb
+$$;
 
 create function auth.uid()
 returns uuid

@@ -1,6 +1,7 @@
 import type { Session, User } from '@supabase/supabase-js';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { ACTIVE_COMPANY_KEY } from '@/lib/storage-keys';
+import { queryClient } from '@/lib/query';
 import { supabase } from '@/lib/supabase';
 
 interface AuthState {
@@ -40,6 +41,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user: session?.user ?? null,
       signOut: async () => {
         await supabase.auth.signOut();
+        // Never show one user's cached tenant data to the next user on this device.
+        queryClient.clear();
         localStorage.removeItem(ACTIVE_COMPANY_KEY);
       },
     }),

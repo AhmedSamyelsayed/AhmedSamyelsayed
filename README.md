@@ -6,27 +6,35 @@ Production: `figure.aseautomation.online`
 **Read [CONTEXT.md](CONTEXT.md) first.** It is the source of truth for scope, architecture,
 data model and security rules.
 
-## Status: Phase 0 (Foundation)
+## Status
 
-| Area               | State                                                                                  |
-| ------------------ | -------------------------------------------------------------------------------------- |
-| Monorepo + tooling | pnpm workspaces, TypeScript strict, ESLint, Prettier, Vitest                           |
-| Database           | companies, members, roles, permissions, overrides, platform admins, activity log       |
-| RLS                | Enabled on every table; `is_member`, `company_role`, `has_permission` helpers          |
-| Guards             | Owner-only owner changes, no self-escalation, last-owner protection, delegation limits |
-| Storage            | Private `company-assets` and `documents` buckets, `{company_id}/` prefix policies      |
-| Auth (web)         | Email/password, magic link, Google OAuth, password reset                               |
-| Onboarding         | Step 1: create company (or personal workspace) via `create_company()` RPC              |
-| i18n               | English and Arabic with RTL; tests enforce key parity and no tashkeel                  |
-| CI                 | Format, lint, typecheck, unit tests, build, secret scan, pgTAP RLS tests               |
-| Deploy             | GitHub Actions: `supabase db push`, then Cloudflare Pages                              |
+**Phase 0 (Foundation)** done: monorepo, CI, auth, tenancy, roles, RLS helpers, storage.
+
+**Phase 1 (Org + Onboarding)** done:
+
+| Area              | What exists                                                                                          |
+| ----------------- | ---------------------------------------------------------------------------------------------------- |
+| Onboarding wizard | Profile + logo, working week + FT/PT hours + holidays, structure, employees, team invites; resumable |
+| Org structure     | Departments, positions with `reports_to`, employees with optional manager override                   |
+| Integrity         | Composite `(company_id, id)` foreign keys (no cross-tenant links), cycle prevention on both trees    |
+| Visibility        | `can_view_employee()` + materialized `employee_visibility`, refreshed by triggers on org changes     |
+| Excel import      | Template download, client preview with row-level errors, atomic server-side `import_org()`           |
+| Invitations       | `create_invitation` / `accept_invitation` RPCs, `send-invite` Edge Function, invitations inbox       |
+| Users & roles     | Member list, role and status changes, per-user permission overrides, pending invitations             |
+| Tests             | 114 pgTAP tests across 4 files; Vitest for shared logic, guards, i18n and xlsx parsing               |
+
+Manager visibility rule: an employee's manager is `manager_employee_id` when set, otherwise the
+active holder(s) of the nearest ancestor position that has a holder (vacant positions are skipped).
+A user with role `manager` sees everyone below their linked employee record, at any depth. Owner,
+CEO, HR admin and HR staff see the whole company; everyone sees their own record.
 
 ## Layout
 
 ```
 apps/web/            React 18 + Vite + Tailwind SPA (Cloudflare Pages)
-packages/shared/     Roles, permissions, zod schemas shared by app and workers
+packages/shared/     Roles, permissions, zod schemas, Excel import parsing/validation
 supabase/migrations/ Schema, RLS, storage (the only way to change the DB)
+supabase/functions/  Edge Functions (send-invite)
 supabase/tests/      pgTAP tests per role (database/) + local Supabase stub (local/)
 workers/ai-gateway/  Phase 4 placeholder
 prototype/           Reference prototype (not deployed)
@@ -81,4 +89,7 @@ is a reserved SQL keyword.
    `SUPABASE_PROJECT_ID`, `SUPABASE_DB_PASSWORD`, `VITE_SUPABASE_URL`,
    `VITE_SUPABASE_ANON_KEY`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
    The service role key is never a CI or frontend secret.
-4. Push to `main`: migrations apply, then the site deploys.
+4. Edge Function secrets: `supabase secrets set APP_URL=https://figure.aseautomation.online
+APP_ORIGINS=https://figure.aseautomation.online`. Add `https://figure.aseautomation.online/invitations`
+   to the Auth redirect URLs.
+5. Push to `main`: migrations apply, the `send-invite` function deploys, then the site deploys.

@@ -10,6 +10,7 @@ import {
   Network,
   Settings,
   ShieldCheck,
+  Users,
   type LucideIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -37,17 +38,31 @@ const NAV: NavItem[] = [
     permission: 'timesheets.read',
   },
   { to: '/app/documents', label: 'nav.documents', icon: FileText, permission: 'documents.read' },
-  { to: '/app/org', label: 'nav.org', icon: Network, permission: 'employees.read' },
+  { to: '/app/org', label: 'nav.org', icon: Network, permission: 'employees.read', ready: true },
   { to: '/app/training', label: 'nav.training', icon: GraduationCap, permission: 'training.read' },
   { to: '/app/audit', label: 'nav.audit', icon: ShieldCheck, permission: 'audit.read' },
   { to: '/app/reports', label: 'nav.reports', icon: BarChart3, permission: 'export.data' },
-  { to: '/app/settings/company', label: 'nav.settings', icon: Settings, permission: 'org.manage' },
+  {
+    to: '/app/settings/users',
+    label: 'nav.users',
+    icon: Users,
+    permission: 'users.manage',
+    ready: true,
+  },
+  {
+    to: '/app/settings/company',
+    label: 'nav.settings',
+    icon: Settings,
+    permission: 'org.manage',
+    ready: true,
+  },
 ];
 
 export function AppLayout() {
   const { t, i18n } = useTranslation();
   const { signOut } = useAuth();
   const { active, memberships, permissions, selectCompany } = useCompany();
+  const items = NAV.filter((item) => !item.permission || hasAll(permissions, item.permission));
   const companyName =
     i18n.resolvedLanguage === 'ar' && active?.company.name_ar
       ? active.company.name_ar
@@ -72,41 +87,51 @@ export function AppLayout() {
         ) : (
           <div className="mb-4 truncate text-sm text-muted-foreground">{companyName}</div>
         )}
-        <nav className="flex flex-col gap-1">
-          {NAV.filter((item) => !item.permission || hasAll(permissions, item.permission)).map(
-            ({ to, label, icon: Icon, ready }) => (
-              <NavLink
-                key={to}
-                to={to}
-                aria-disabled={!ready}
-                onClick={(e) => !ready && e.preventDefault()}
-                className={({ isActive }) =>
-                  cn(
-                    'flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-muted',
-                    isActive && 'bg-muted text-primary',
-                    !ready && 'cursor-not-allowed opacity-50',
-                  )
-                }
-              >
-                <Icon className="size-4" aria-hidden />
-                {t(label)}
-              </NavLink>
-            ),
-          )}
-        </nav>
+        <NavLinks items={items} vertical />
       </aside>
       <div className="flex flex-1 flex-col">
         <header className="flex items-center justify-end gap-2 border-b p-3">
+          <span className="me-auto font-bold text-primary md:hidden">{t('app.name')}</span>
           <LanguageSwitcher />
           <Button variant="ghost" size="sm" onClick={() => void signOut()}>
             <LogOut className="size-4 rtl:rotate-180" aria-hidden />
             {t('common.signOut')}
           </Button>
         </header>
-        <main className="flex-1 p-6">
+        <div className="overflow-x-auto border-b px-2 py-1 md:hidden">
+          <NavLinks items={items} />
+        </div>
+        <main className="flex-1 p-4 md:p-6">
           <Outlet />
         </main>
       </div>
     </div>
+  );
+}
+
+function NavLinks({ items, vertical }: { items: NavItem[]; vertical?: boolean }) {
+  const { t } = useTranslation();
+  return (
+    <nav className={cn('flex gap-1', vertical ? 'flex-col' : 'flex-row')}>
+      {items.map(({ to, label, icon: Icon, ready }) => (
+        <NavLink
+          key={to}
+          to={to}
+          aria-disabled={!ready}
+          title={ready ? undefined : t('nav.comingSoon')}
+          onClick={(e) => !ready && e.preventDefault()}
+          className={({ isActive }) =>
+            cn(
+              'flex items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-sm hover:bg-muted',
+              isActive && 'bg-muted text-primary',
+              !ready && 'cursor-not-allowed opacity-50',
+            )
+          }
+        >
+          <Icon className="size-4" aria-hidden />
+          {t(label)}
+        </NavLink>
+      ))}
+    </nav>
   );
 }

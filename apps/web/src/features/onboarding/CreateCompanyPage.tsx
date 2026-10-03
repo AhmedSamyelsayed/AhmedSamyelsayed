@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { AuthLayout } from '@/features/auth/AuthLayout';
 import { useFormStatus } from '@/features/auth/useFormStatus';
 import { useCompany } from '@/features/company/CompanyProvider';
+import { InvitationsList } from '@/features/invitations/InvitationsList';
 import { supabase } from '@/lib/supabase';
 
 /**
@@ -40,12 +41,13 @@ export function CreateCompanyPage() {
     if (ok && companyId) {
       selectCompany(companyId);
       await refresh();
-      navigate('/app/dashboard', { replace: true });
+      navigate('/onboarding/setup/profile', { replace: true });
     }
   }
 
   return (
     <AuthLayout title={t('onboarding.title')} description={t('onboarding.subtitle')}>
+      <InvitationsList />
       <form className="flex flex-col gap-4" onSubmit={(e) => void onSubmit(e)}>
         <div className="flex flex-col gap-2">
           <Label htmlFor="nameEn">{t('onboarding.nameEn')}</Label>

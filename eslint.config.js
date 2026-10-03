@@ -36,6 +36,11 @@ export default tseslint.config(
     },
   },
   {
+    // The router module exports a router object, not components; HMR does not apply.
+    files: ['apps/web/src/app/router.tsx'],
+    rules: { 'react-refresh/only-export-components': 'off' },
+  },
+  {
     files: ['scripts/**/*.{js,mjs}', '**/*.config.{js,ts}'],
     languageOptions: { globals: globals.node },
   },
