@@ -254,6 +254,117 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      documents: {
+        Row: {
+          id: string;
+          company_id: string;
+          uploaded_by: string | null;
+          type: 'timesheet' | 'job_analysis' | 'jd' | 'report' | 'other';
+          storage_path: string;
+          file_name: string;
+          mime_type: string;
+          size_bytes: number;
+          position_id: string | null;
+          status: 'pending' | 'processing' | 'done' | 'failed';
+          error: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          company_id: string;
+          uploaded_by: string;
+          type: 'timesheet' | 'job_analysis' | 'jd' | 'report' | 'other';
+          storage_path: string;
+          file_name: string;
+          mime_type: string;
+          size_bytes: number;
+          position_id?: string | null;
+        };
+        Update: {
+          status?: 'pending' | 'processing' | 'done' | 'failed';
+          error?: string | null;
+          position_id?: string | null;
+        };
+        Relationships: [];
+      };
+      job_analyses: {
+        Row: {
+          id: string;
+          company_id: string;
+          position_id: string;
+          version: number;
+          source: 'upload' | 'questionnaire' | 'manual';
+          status: 'draft' | 'approved' | 'superseded';
+          content: Json;
+          core_keywords: string[];
+          ancillary_keywords: string[];
+          source_document_id: string | null;
+          ja_session_id: string | null;
+          generation: Json | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+          approved_by: string | null;
+          approved_at: string | null;
+        };
+        Insert: {
+          company_id: string;
+          position_id: string;
+          version: number;
+          source: 'upload' | 'questionnaire' | 'manual';
+          content: Json;
+          core_keywords?: string[];
+          ancillary_keywords?: string[];
+          source_document_id?: string | null;
+          ja_session_id?: string | null;
+        };
+        Update: { content?: Json; core_keywords?: string[]; ancillary_keywords?: string[] };
+        Relationships: [];
+      };
+      ja_question_templates: {
+        Row: {
+          id: string;
+          company_id: string | null;
+          key: string;
+          sort_order: number;
+          text_en: string;
+          text_ar: string;
+          help_en: string | null;
+          help_ar: string | null;
+          active: boolean;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      ja_sessions: {
+        Row: {
+          id: string;
+          company_id: string;
+          position_id: string;
+          respondent_user_id: string | null;
+          jd_document_id: string | null;
+          status: 'open' | 'submitted' | 'generated' | 'cancelled';
+          answers: Json;
+          followups: Json;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          company_id: string;
+          position_id: string;
+          respondent_user_id?: string | null;
+          jd_document_id?: string | null;
+        };
+        Update: {
+          status?: 'open' | 'submitted' | 'generated' | 'cancelled';
+          respondent_user_id?: string | null;
+        };
+        Relationships: [];
+      };
       activity_log: {
         Row: {
           id: string;
@@ -312,6 +423,11 @@ export type Database = {
         }[];
       };
       import_org: { Args: { _company_id: string; _payload: Json }; Returns: Json };
+      approve_job_analysis: { Args: { _job_analysis_id: string }; Returns: undefined };
+      save_ja_answers: {
+        Args: { _session_id: string; _answers: Json; _followup_answers?: Json; _submit?: boolean };
+        Returns: undefined;
+      };
     };
     Enums: {
       app_role: AppRole;

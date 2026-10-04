@@ -8,6 +8,7 @@ import { useCompany } from '@/features/company/CompanyProvider';
 import { useCan } from '@/features/company/useCan';
 import { InviteDialog } from '@/features/members/InviteDialog';
 import { orgApi, useOrgMutation } from '@/features/org/api';
+import { JobAnalysisOverview } from '@/features/job-analysis/JobAnalysisListPage';
 import { DepartmentsManager } from '@/features/org/DepartmentsManager';
 import { EmployeesManager } from '@/features/org/EmployeesManager';
 import { PositionsManager } from '@/features/org/PositionsManager';
@@ -95,6 +96,7 @@ export function WizardPage() {
               </div>
             )}
             {step === 'employees' && <EmployeesManager />}
+            {step === 'job-analysis' && <JobAnalysisOverview />}
             {step === 'team' && <TeamStep />}
             {step === 'done' && <DoneStep />}
           </CardContent>
@@ -136,7 +138,6 @@ function DoneStep() {
   const { t } = useTranslation();
   return (
     <ul className="flex list-disc flex-col gap-2 ps-5 text-sm">
-      <li>{t('wizard.doneJobAnalysis')}</li>
       <li>{t('wizard.doneAi')}</li>
       <li>{t('wizard.doneChange')}</li>
     </ul>

@@ -3,6 +3,7 @@ import { hasAll } from '@figure/shared';
 import {
   BarChart3,
   ClipboardList,
+  FileSearch,
   FileText,
   GraduationCap,
   LayoutDashboard,
@@ -39,6 +40,13 @@ const NAV: NavItem[] = [
   },
   { to: '/app/documents', label: 'nav.documents', icon: FileText, permission: 'documents.read' },
   { to: '/app/org', label: 'nav.org', icon: Network, permission: 'employees.read', ready: true },
+  {
+    to: '/app/job-analysis',
+    label: 'nav.jobAnalysis',
+    icon: FileSearch,
+    permission: 'job_analysis.read',
+    ready: true,
+  },
   { to: '/app/training', label: 'nav.training', icon: GraduationCap, permission: 'training.read' },
   { to: '/app/audit', label: 'nav.audit', icon: ShieldCheck, permission: 'audit.read' },
   { to: '/app/reports', label: 'nav.reports', icon: BarChart3, permission: 'export.data' },

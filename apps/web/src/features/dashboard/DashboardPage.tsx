@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useCompany } from '@/features/company/CompanyProvider';
 import { useCan } from '@/features/company/useCan';
 import { InvitationsList } from '@/features/invitations/InvitationsList';
+import { MyQuestionnaires } from '@/features/job-analysis/MyQuestionnaires';
 import { resumeStep } from '@/features/onboarding/steps';
 import { useDepartments, useEmployees, usePositions } from '@/features/org/api';
 import { useLocalizedName } from '@/lib/useDate';
@@ -23,6 +24,7 @@ export function DashboardPage() {
         {t('dashboard.welcome', { company: name(active.company.name_en, active.company.name_ar) })}
       </h1>
       <InvitationsList />
+      <MyQuestionnaires />
       {setupPending && (
         <Card className="border-primary/50">
           <CardHeader>

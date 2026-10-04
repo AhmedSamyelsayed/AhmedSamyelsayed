@@ -28,13 +28,41 @@ active holder(s) of the nearest ancestor position that has a holder (vacant posi
 A user with role `manager` sees everyone below their linked employee record, at any depth. Owner,
 CEO, HR admin and HR staff see the whole company; everyone sees their own record.
 
+**Phase 2 (Job Analysis)** done:
+
+| Area                  | What exists                                                                                                                                                                                                                                |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Path A: upload        | PDF, Word, Excel, text or image JA/JD → Claude drafts a structured analysis for HR review                                                                                                                                                  |
+| Path B: questionnaire | 10 bilingual standard questions (company-extendable), assigned to a holder or manager; Claude adds up to 3 follow-ups per round, then drafts the analysis                                                                                  |
+| Analysis record       | Versioned per position; one approved version; approved versions are immutable; purpose, duties with time shares, KPIs with weights, EN/AR task keyword map, HR review notes                                                                |
+| AI gateway            | `ai` Edge Function: JWT + membership + permission checks, monthly call quota, `claude-opus-5-5` with structured JSON output, adaptive thinking, server-side refusal fallback, one retry on invalid output, usage log without document text |
+| Safety                | Uploaded text is wrapped as untrusted data; output is schema-validated and normalized before saving                                                                                                                                        |
+| Tests                 | 147 pgTAP, 13 Deno (incl. real .docx/.xlsx extraction), 33 Vitest                                                                                                                                                                          |
+
+Not yet verified against the live Anthropic API from this environment (no key available here);
+see "AI setup" below.
+
+### AI setup
+
+- Default model `claude-opus-5-5` (override with the `FIGURE_AI_MODEL` function secret).
+- Platform key: add `ANTHROPIC_API_KEY` as a GitHub secret; the deploy workflow stores it as a
+  Supabase function secret. It never reaches the browser.
+- `AI_MONTHLY_CALL_LIMIT` (default 300) caps calls per company per month.
+- Anthropic does not train on API data by default. Zero data retention is an organization-level
+  agreement with Anthropic, not a request flag; arrange it there if your clients require it.
+- Prompts live in `supabase/functions/_shared/ai/prompts.ts` with a `PROMPT_VERSION` recorded on
+  every analysis and usage row (CONTEXT.md planned DB-stored templates; versioned code is simpler to
+  review and test).
+- The job-analysis schema lives in `packages/shared/src/job-analysis.ts` and is copied into the
+  functions by `pnpm sync:functions`; CI fails if the copy is stale.
+
 ## Layout
 
 ```
 apps/web/            React 18 + Vite + Tailwind SPA (Cloudflare Pages)
 packages/shared/     Roles, permissions, zod schemas, Excel import parsing/validation
 supabase/migrations/ Schema, RLS, storage (the only way to change the DB)
-supabase/functions/  Edge Functions (send-invite)
+supabase/functions/  Edge Functions (ai, send-invite) + Deno tests
 supabase/tests/      pgTAP tests per role (database/) + local Supabase stub (local/)
 workers/ai-gateway/  Phase 4 placeholder
 prototype/           Reference prototype (not deployed)

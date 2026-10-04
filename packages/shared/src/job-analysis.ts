@@ -1,0 +1,206 @@
+/**
+ * Job analysis: the structured record produced from an uploaded document or
+ * the guided questionnaire (CONTEXT.md sections 6.1 and 6.2).
+ *
+ * This file is the single source of truth. It is copied verbatim into
+ * supabase/functions/_shared/generated/ by scripts/sync-functions-shared.mjs
+ * (CI fails if the copy drifts), so it must only import 'zod'.
+ */
+import { z } from 'zod';
+
+export const DUTY_FREQUENCIES = ['daily', 'weekly', 'monthly', 'quarterly', 'ad_hoc'] as const;
+export const KPI_FREQUENCIES = ['daily', 'weekly', 'monthly', 'quarterly', 'annual'] as const;
+export const TASK_TYPES = ['core', 'ancillary'] as const;
+
+const text = z.string().trim().max(2000);
+const shortText = z.string().trim().max(300);
+const list = z.array(shortText).max(30);
+
+export const dutySchema = z.strictObject({
+  title_en: shortText.min(1),
+  title_ar: shortText,
+  description: text,
+  time_percent: z.number().min(0).max(100),
+  frequency: z.enum(DUTY_FREQUENCIES),
+  type: z.enum(TASK_TYPES),
+});
+
+export const kpiSchema = z.strictObject({
+  name_en: shortText.min(1),
+  name_ar: shortText,
+  description: text,
+  unit: shortText,
+  target: shortText,
+  frequency: z.enum(KPI_FREQUENCIES),
+  weight: z.number().min(0).max(100),
+});
+
+export const jobAnalysisContentSchema = z.strictObject({
+  purpose_en: text,
+  purpose_ar: text,
+  duties: z.array(dutySchema).max(25),
+  responsibilities: list,
+  decisions_independent: list,
+  decisions_approval: list,
+  reports_to: shortText,
+  direct_reports: list,
+  contacts_internal: list,
+  contacts_external: list,
+  tools: list,
+  education: shortText,
+  experience: shortText,
+  certifications: list,
+  skills: list,
+  working_conditions: text,
+  kpis: z.array(kpiSchema).max(15),
+  core_keywords: z.array(shortText).max(60),
+  ancillary_keywords: z.array(shortText).max(60),
+  /** Gaps, assumptions or conflicts the AI wants HR to review. */
+  review_notes: text,
+});
+
+export type Duty = z.infer<typeof dutySchema>;
+export type Kpi = z.infer<typeof kpiSchema>;
+export type JobAnalysisContent = z.infer<typeof jobAnalysisContentSchema>;
+
+export function emptyJobAnalysis(): JobAnalysisContent {
+  return {
+    purpose_en: '',
+    purpose_ar: '',
+    duties: [],
+    responsibilities: [],
+    decisions_independent: [],
+    decisions_approval: [],
+    reports_to: '',
+    direct_reports: [],
+    contacts_internal: [],
+    contacts_external: [],
+    tools: [],
+    education: '',
+    experience: '',
+    certifications: [],
+    skills: [],
+    working_conditions: '',
+    kpis: [],
+    core_keywords: [],
+    ancillary_keywords: [],
+    review_notes: '',
+  };
+}
+
+/** Lowercase, trim, collapse spaces, drop duplicates and empties; keeps order. */
+export function normalizeKeywords(words: readonly string[], limit = 60): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const w of words) {
+    const k = w.trim().replace(/\s+/g, ' ').toLowerCase();
+    if (k && !seen.has(k)) {
+      seen.add(k);
+      out.push(k);
+    }
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
+/**
+ * Scales numbers to whole values summing to exactly 100 (largest remainder),
+ * or splits evenly when they are all zero. Empty input stays empty.
+ */
+export function rebalanceTo100(values: readonly number[]): number[] {
+  if (values.length === 0) return [];
+  const clean = values.map((v) => (Number.isFinite(v) && v > 0 ? v : 0));
+  const total = clean.reduce((a, b) => a + b, 0);
+  const raw =
+    total > 0 ? clean.map((v) => (v / total) * 100) : clean.map(() => 100 / values.length);
+  const floors = raw.map(Math.floor);
+  let left = 100 - floors.reduce((a, b) => a + b, 0);
+  const order = raw
+    .map((v, i) => ({ i, r: v - Math.floor(v) }))
+    .sort((a, b) => b.r - a.r || a.i - b.i);
+  for (const { i } of order) {
+    if (left <= 0) break;
+    floors[i]! += 1;
+    left -= 1;
+  }
+  return floors;
+}
+
+/**
+ * Makes AI (or hand-edited) output consistent before saving: KPI weights and
+ * duty time shares sum to 100, keywords are normalized, and core keywords do
+ * not repeat in the ancillary list.
+ */
+export function normalizeJobAnalysis(content: JobAnalysisContent): JobAnalysisContent {
+  const kpiWeights = rebalanceTo100(content.kpis.map((k) => k.weight));
+  const dutyShares = rebalanceTo100(content.duties.map((d) => d.time_percent));
+  const core = normalizeKeywords(content.core_keywords);
+  const coreSet = new Set(core);
+  return {
+    ...content,
+    kpis: content.kpis.map((k, i) => ({ ...k, weight: kpiWeights[i]! })),
+    duties: content.duties.map((d, i) => ({ ...d, time_percent: dutyShares[i]! })),
+    core_keywords: core,
+    ancillary_keywords: normalizeKeywords(content.ancillary_keywords).filter(
+      (k) => !coreSet.has(k),
+    ),
+  };
+}
+
+const UNSUPPORTED_SCHEMA_KEYS = new Set([
+  '$schema',
+  'minimum',
+  'maximum',
+  'exclusiveMinimum',
+  'exclusiveMaximum',
+  'multipleOf',
+  'minLength',
+  'maxLength',
+  'minItems',
+  'maxItems',
+  'pattern',
+]);
+
+/**
+ * JSON Schema for Claude structured outputs. Numeric, length and array-size
+ * constraints are not supported there, so they are stripped here and
+ * enforced afterwards by parsing with the zod schema.
+ */
+export function toStructuredOutputSchema(schema: z.ZodType): Record<string, unknown> {
+  const strip = (node: unknown): unknown => {
+    if (Array.isArray(node)) return node.map(strip);
+    if (node && typeof node === 'object') {
+      return Object.fromEntries(
+        Object.entries(node as Record<string, unknown>)
+          .filter(([k]) => !UNSUPPORTED_SCHEMA_KEYS.has(k))
+          .map(([k, v]) => [k, strip(v)]),
+      );
+    }
+    return node;
+  };
+  return strip(z.toJSONSchema(schema)) as Record<string, unknown>;
+}
+
+/** Follow-up questions the AI may add to the standard questionnaire. */
+export const followUpsSchema = z.strictObject({
+  done: z.boolean(),
+  questions: z
+    .array(
+      z.strictObject({
+        key: z.string().trim().min(1).max(60),
+        text_en: z.string().trim().min(1).max(500),
+        text_ar: z.string().trim().max(500),
+        reason: z.string().trim().max(300),
+      }),
+    )
+    .max(5),
+});
+
+export type FollowUps = z.infer<typeof followUpsSchema>;
+
+export interface FollowUpQuestion {
+  key: string;
+  text_en: string;
+  text_ar: string;
+  answer?: string;
+}

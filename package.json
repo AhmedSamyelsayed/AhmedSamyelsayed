@@ -15,7 +15,11 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check:secrets": "node scripts/check-client-secrets.mjs",
-    "db:test:local": "scripts/test-db-local.sh"
+    "db:test:local": "scripts/test-db-local.sh",
+    "check:functions-sync": "node scripts/sync-functions-shared.mjs --check",
+    "sync:functions": "node scripts/sync-functions-shared.mjs",
+    "functions:check": "cd supabase/functions && deno check ai/index.ts send-invite/index.ts",
+    "functions:test": "cd supabase/functions && deno test --allow-read --allow-env"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

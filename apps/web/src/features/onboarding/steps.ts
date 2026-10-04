@@ -3,6 +3,7 @@ export const WIZARD_STEPS = [
   'working-time',
   'structure',
   'employees',
+  'job-analysis',
   'team',
   'done',
 ] as const;

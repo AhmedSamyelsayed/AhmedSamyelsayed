@@ -1,0 +1,14 @@
+{
+  "imports": {
+    "zod": "npm:zod@4.6.5",
+    "@anthropic-ai/sdk": "npm:@anthropic-ai/sdk@0.131.0",
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2.117.2",
+    "read-excel-file/universal": "npm:read-excel-file@9.3.10/universal",
+    "@std/assert": "jsr:@std/assert@1",
+    "fflate": "npm:fflate@0.8.3"
+  },
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true
+  }
+}

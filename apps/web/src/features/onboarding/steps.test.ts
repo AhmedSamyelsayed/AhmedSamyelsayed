@@ -6,7 +6,8 @@ describe('wizard steps', () => {
     expect(nextStep('profile')).toBe('working-time');
     expect(nextStep('done')).toBe('done');
     expect(previousStep('profile')).toBeNull();
-    expect(previousStep('team')).toBe('employees');
+    expect(previousStep('team')).toBe('job-analysis');
+    expect(nextStep('employees')).toBe('job-analysis');
   });
 
   it('resumes from the saved step or starts over', () => {

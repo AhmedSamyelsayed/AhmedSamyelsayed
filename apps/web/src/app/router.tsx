@@ -23,6 +23,21 @@ const CompanySettingsPage = lazy(() =>
     default: m.CompanySettingsPage,
   })),
 );
+const JobAnalysisListPage = lazy(() =>
+  import('@/features/job-analysis/JobAnalysisListPage').then((m) => ({
+    default: m.JobAnalysisListPage,
+  })),
+);
+const PositionAnalysisPage = lazy(() =>
+  import('@/features/job-analysis/PositionAnalysisPage').then((m) => ({
+    default: m.PositionAnalysisPage,
+  })),
+);
+const QuestionnairePage = lazy(() =>
+  import('@/features/job-analysis/QuestionnairePage').then((m) => ({
+    default: m.QuestionnairePage,
+  })),
+);
 const WizardPage = lazy(() =>
   import('@/features/onboarding/WizardPage').then((m) => ({ default: m.WizardPage })),
 );
@@ -70,6 +85,35 @@ export const router = createBrowserRouter([
                   <RequirePermission permission="employees.read">
                     <Lazy>
                       <OrgPage />
+                    </Lazy>
+                  </RequirePermission>
+                ),
+              },
+              {
+                path: 'job-analysis',
+                element: (
+                  <RequirePermission permission="job_analysis.read">
+                    <Lazy>
+                      <JobAnalysisListPage />
+                    </Lazy>
+                  </RequirePermission>
+                ),
+              },
+              {
+                // Respondents answer without job_analysis.read; RLS limits them to their own session.
+                path: 'job-analysis/questionnaire/:sessionId',
+                element: (
+                  <Lazy>
+                    <QuestionnairePage />
+                  </Lazy>
+                ),
+              },
+              {
+                path: 'job-analysis/:positionId',
+                element: (
+                  <RequirePermission permission="job_analysis.read">
+                    <Lazy>
+                      <PositionAnalysisPage />
                     </Lazy>
                   </RequirePermission>
                 ),

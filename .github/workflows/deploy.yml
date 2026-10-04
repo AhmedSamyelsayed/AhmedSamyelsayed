@@ -4,6 +4,7 @@ name: Deploy
 #   SUPABASE_ACCESS_TOKEN, SUPABASE_PROJECT_ID, SUPABASE_DB_PASSWORD
 #   VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
 #   CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
+#   ANTHROPIC_API_KEY (platform AI credits; stored as a Supabase function secret)
 # The service role key is never needed here and must not be added.
 
 on:
@@ -30,8 +31,17 @@ jobs:
           version: latest
       - run: supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_ID }}"
       - run: supabase db push
+      - name: Set Edge Function secrets
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -n "$ANTHROPIC_API_KEY" ]; then
+            supabase secrets set --project-ref "${{ secrets.SUPABASE_PROJECT_ID }}" ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY"
+          fi
       - name: Deploy Edge Functions
-        run: supabase functions deploy send-invite --project-ref "${{ secrets.SUPABASE_PROJECT_ID }}"
+        run: |
+          supabase functions deploy send-invite --project-ref "${{ secrets.SUPABASE_PROJECT_ID }}"
+          supabase functions deploy ai --project-ref "${{ secrets.SUPABASE_PROJECT_ID }}"
 
   web:
     name: Deploy web to Cloudflare Pages

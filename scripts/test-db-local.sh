@@ -22,7 +22,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-"${RUN_AS[@]}" "$PG_BIN/initdb" -D "$DATA_DIR" -U postgres --auth=trust >/dev/null
+"${RUN_AS[@]}" "$PG_BIN/initdb" -D "$DATA_DIR" -U postgres --auth=trust -E UTF8 --locale=C.UTF-8 >/dev/null
 "${RUN_AS[@]}" "$PG_BIN/pg_ctl" -D "$DATA_DIR" -o "-p $PORT -k /tmp" -l "$DATA_DIR/log" start -w >/dev/null
 
 export PGHOST=/tmp PGPORT="$PORT" PGUSER=postgres PGDATABASE=postgres
