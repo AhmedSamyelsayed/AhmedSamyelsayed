@@ -6,7 +6,8 @@
 -- Memberships are created only by create_company() or by accepting an
 -- invitation, never by inserting another user's id directly.
 -- ---------------------------------------------------------------------------
-drop policy "members: users.manage can insert" on public.company_members;
+-- Disable the earlier insert policy (kept as a no-op rather than dropped).
+alter policy "members: users.manage can insert" on public.company_members with check (false);
 revoke insert on public.company_members from authenticated;
 
 -- Email of the signed-in user, only when confirmed.
